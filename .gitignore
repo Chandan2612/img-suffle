@@ -1,0 +1,9 @@
+# Ignore images folder
+images/
+
+# Ignore output folders
+swapped_output/
+final_output/
+
+# Ignore virtual environment
+venv/

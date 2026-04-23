@@ -3,91 +3,60 @@ import random
 import shutil
 
 # ==============================
-# CHANGE THIS PATH
+# PATH (your images folder)
 # ==============================
 root_folder = "./images"
-# Example:
-# root_folder = r"C:\Users\chandan\Desktop\images"
+
+# Output folder
+output_folder = os.path.join(root_folder, "final_output")
+
+# Create output folder
+os.makedirs(output_folder, exist_ok=True)
 
 # ==============================
-# Step 1: Get all folders
-# ==============================
-folders = [
-    os.path.join(root_folder, f)
-    for f in os.listdir(root_folder)
-    if os.path.isdir(os.path.join(root_folder, f))
-]
-
-# ==============================
-# Step 2: Collect all images
+# Step 1: Collect all images
 # ==============================
 all_images = []
-folder_map = {}
 
-for folder in folders:
-    images = [
-        os.path.join(folder, file)
-        for file in os.listdir(folder)
-        if file.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
-    ]
+for folder in os.listdir(root_folder):
+    folder_path = os.path.join(root_folder, folder)
 
-    folder_map[folder] = images
-    all_images.extend(images)
+    if os.path.isdir(folder_path) and folder != "final_output":
+
+        for file in os.listdir(folder_path):
+            if file.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                full_path = os.path.join(folder_path, file)
+                all_images.append(full_path)
 
 # ==============================
-# Step 3: Shuffle images globally
+# Step 2: Shuffle images
 # ==============================
 random.shuffle(all_images)
 
 # ==============================
-# Step 4: Redistribute
-# ==============================
-index = 0
-new_map = {}
-
-for folder in folder_map:
-    count = len(folder_map[folder])
-    new_map[folder] = all_images[index:index+count]
-    index += count
-
-# ==============================
-# Step 5: Create temp folder
-# ==============================
-temp_root = os.path.join(root_folder, "swapped_output")
-
-if not os.path.exists(temp_root):
-    os.makedirs(temp_root)
-
-# ==============================
-# Step 6: Copy images (no quality loss)
+# Step 3: Copy in sequence
 # ==============================
 mapping = []
 
-for folder in new_map:
+for i, img_path in enumerate(all_images, start=1):
 
-    folder_name = os.path.basename(folder)
-    new_folder_path = os.path.join(temp_root, folder_name)
+    ext = os.path.splitext(img_path)[1]  # keeps original extension
+    new_name = f"{i}{ext}"
 
-    os.makedirs(new_folder_path, exist_ok=True)
+    dest_path = os.path.join(output_folder, new_name)
 
-    for img_path in new_map[folder]:
+    shutil.copy2(img_path, dest_path)  # NO QUALITY LOSS
 
-        file_name = os.path.basename(img_path)
-        dest_path = os.path.join(new_folder_path, file_name)
-
-        shutil.copy2(img_path, dest_path)  # keeps quality + metadata
-
-        mapping.append(f"{img_path}  -->  {dest_path}")
+    mapping.append(f"{img_path} --> {dest_path}")
 
 # ==============================
-# Step 7: Save mapping file
+# Step 4: Save mapping
 # ==============================
-mapping_file = os.path.join(temp_root, "mapping.txt")
+mapping_file = os.path.join(output_folder, "mapping.txt")
 
 with open(mapping_file, "w") as f:
     for line in mapping:
         f.write(line + "\n")
 
 print("✅ Done!")
-print(f"📁 Output folder: {temp_root}")
-print(f"📄 Mapping file: {mapping_file}")
+print(f"📁 Output: {output_folder}")

@@ -3,7 +3,7 @@ import random
 import shutil
 
 # ==============================
-# PATH (your images folder)
+# PATH (your images folder) 
 # ==============================
 root_folder = "./images"
 

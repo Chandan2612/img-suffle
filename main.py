@@ -3,7 +3,7 @@ import random
 import shutil
 
 # ==============================
-# PATH (your images folder) 
+# PATH (your images folder)
 # ==============================
 root_folder = "./images"
 
@@ -17,16 +17,22 @@ os.makedirs(output_folder, exist_ok=True)
 # Step 1: Collect all images
 # ==============================
 all_images = []
+folder_counts = {}
+supported_extensions = (".jpg", ".jpeg", ".png", ".webp")
 
-for folder in os.listdir(root_folder):
-    folder_path = os.path.join(root_folder, folder)
+for current_folder, folders, files in os.walk(root_folder):
+    folders[:] = [folder for folder in folders if folder != "final_output"]
 
-    if os.path.isdir(folder_path) and folder != "final_output":
+    image_count = 0
 
-        for file in os.listdir(folder_path):
-            if file.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
-                full_path = os.path.join(folder_path, file)
-                all_images.append(full_path)
+    for file in files:
+        if file.lower().endswith(supported_extensions):
+            full_path = os.path.join(current_folder, file)
+            all_images.append(full_path)
+            image_count += 1
+
+    if image_count > 0:
+        folder_counts[current_folder] = image_count
 
 # ==============================
 # Step 2: Shuffle images
@@ -58,5 +64,26 @@ with open(mapping_file, "w") as f:
     for line in mapping:
         f.write(line + "\n")
 
-print("✅ Done!")
-print(f"📁 Output: {output_folder}")
+# ==============================
+# Step 5: Save process log
+# ==============================
+log_file = os.path.join(output_folder, "process_log.txt")
+
+with open(log_file, "w") as f:
+    f.write("Image Shuffler Process Log\n")
+    f.write("==========================\n\n")
+    f.write(f"Root folder: {root_folder}\n")
+    f.write(f"Output folder: {output_folder}\n")
+    f.write(f"Total folders with images: {len(folder_counts)}\n")
+    f.write(f"Total images found: {len(all_images)}\n")
+    f.write(f"Total images copied to output: {len(mapping)}\n\n")
+    f.write("Images found by folder:\n")
+
+    for folder_path in sorted(folder_counts):
+        relative_folder = os.path.relpath(folder_path, root_folder)
+        display_folder = root_folder if relative_folder == "." else os.path.join(root_folder, relative_folder)
+        f.write(f"{display_folder}: {folder_counts[folder_path]}\n")
+
+print("Done!")
+print(f"Output: {output_folder}")
+print(f"Log: {log_file}")
